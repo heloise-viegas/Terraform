@@ -13,13 +13,24 @@ resource "aws_s3_bucket_ownership_controls" "s3_owner" {
     object_ownership = "BucketOwnerPreferred"
   }
 }
+/*
 resource "aws_s3_bucket_acl" "s3_acl" {
   depends_on = [aws_s3_bucket_ownership_controls.example]
 
   bucket = aws_s3_bucket.s3.id
   acl    = "private"
 }
+*/
+resource "aws_s3_bucket_public_access_block" "s3_access" {
+  bucket = aws_s3_bucket.s3.id
 
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+/*
 resource "aws_s3_bucket_website_configuration" "s3_bucket_website" {
   bucket = aws_s3_bucket.s3.id
 
@@ -30,8 +41,8 @@ resource "aws_s3_bucket_website_configuration" "s3_bucket_website" {
   error_document {
     key = "error.html"
   }
-
- /* routing_rule {
+*/
+/* routing_rule {
     condition {
       key_prefix_equals = "docs/"
     }
@@ -39,23 +50,23 @@ resource "aws_s3_bucket_website_configuration" "s3_bucket_website" {
       replace_key_prefix_with = "documents/"
     }
   }
-  */
+  
+}
+*/
+
+data "aws_iam_policy_document" "s3_policy" {
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.s3.arn}/*"]
+
+    principals {
+      type        = "AWS"
+      identifiers = [aws_cloudfront_origin_access_identity.s3_distribution.iam_arn]
+    }
+  }
 }
 
-resource "aws_s3_bucket_policy" "s3_bucket_policy" {
+resource "aws_s3_bucket_policy" "allow_access_from_another_account" {
   bucket = aws_s3_bucket.s3.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Id      = "AllowGetObjects"
-    Statement = [
-      {
-        Sid       = "AllowPublic"
-        Effect    = "Allow"
-        Principal = "*"
-        Action    = "s3:GetObject"
-        Resource  = "${aws_s3_bucket.s3.arn}/**"
-      }
-    ]
-  })
+  policy = data.aws_iam_policy_document.s3_policy.json
 }
