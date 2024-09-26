@@ -1,2 +1,3 @@
-s3_name=website
-env=dev
+s3_name = "cci-tftest"
+env     = "dev"
+region = "us-east-2"
