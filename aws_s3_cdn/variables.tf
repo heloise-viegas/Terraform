@@ -1,7 +1,10 @@
 variable "s3_name" {
-    type =string
+  type = string
 }
 
 variable "env" {
-    type =string
+  type = string
+}
+variable "region" {
+  type = string
 }
