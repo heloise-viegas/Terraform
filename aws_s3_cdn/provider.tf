@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "us-east-2"
-  profile="Certification"
+  region  = "us-east-2"
+  profile = "Certification"
 
 }
